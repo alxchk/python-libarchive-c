@@ -1,10 +1,11 @@
 from __future__ import division, print_function, unicode_literals
 
-from os.path import relpath
+from os.path import relpath, basename
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
 
 from . import ffi
+from .exception import ArchiveError
 from .entry import ArchiveEntry, new_archive_entry
 from .ffi import (
     OPEN_CALLBACK, WRITE_CALLBACK, CLOSE_CALLBACK, VOID_CB, REGULAR_FILE,
@@ -66,17 +67,22 @@ class ArchiveWrite(object):
 
                 with new_archive_read_disk(path, **kw) as read_p:
                     while 1:
-                        r = read_next_header2(read_p, entry_p)
+                        try:
+                            r = read_next_header2(read_p, entry_p)
+                        except ArchiveError:
+                            if not ignore_errors:
+                                raise
+
                         if r == ARCHIVE_EOF:
                             break
 
-                        if entry.pathname in ('.', '..'):
+                        if not entry.pathname:
                             continue
 
                         if basedir is None:
-                            entry.pathname = entry.pathname.lstrip('/')
-                        else:
-                            entry.pathname = relpath(entry.pathname, basedir)
+                            basedir = '/'
+
+                        entry.pathname = relpath(entry.pathname, basedir)
 
                         read_disk_descend(read_p)
                         write_header(write_p, entry_p)

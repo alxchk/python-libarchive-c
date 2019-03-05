@@ -85,7 +85,10 @@ class ArchiveWrite(object):
                         entry.pathname = relpath(entry.pathname, basedir)
 
                         read_disk_descend(read_p)
-                        write_header(write_p, entry_p)
+
+                        if entry.pathname != '.':
+                            write_header(write_p, entry_p)
+
                         if entry.isreg:
                             try:
                                 with open(entry_sourcepath(entry_p), 'rb') as f:

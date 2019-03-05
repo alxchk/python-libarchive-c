@@ -1,5 +1,6 @@
 from __future__ import division, print_function, unicode_literals
 
+from os.path import relpath
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
 
@@ -57,12 +58,21 @@ class ArchiveWrite(object):
         with new_archive_entry() as entry_p:
             entry = ArchiveEntry(None, entry_p)
             for path in paths:
+                basedir = None
+                if type(path) is tuple:
+                    basedir, path = path
+
                 with new_archive_read_disk(path, **kw) as read_p:
                     while 1:
                         r = read_next_header2(read_p, entry_p)
                         if r == ARCHIVE_EOF:
                             break
-                        entry.pathname = entry.pathname.lstrip('/')
+
+                        if basedir is None:
+                            entry.pathname = entry.pathname.lstrip('/')
+                        else:
+                            entry.pathname = relpath(entry.pathname, basedir)
+
                         read_disk_descend(read_p)
                         write_header(write_p, entry_p)
                         if entry.isreg:

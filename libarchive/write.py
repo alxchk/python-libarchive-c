@@ -51,6 +51,8 @@ class ArchiveWrite(object):
         """
         write_p = self._pointer
 
+        ignore_errors = kw.pop('ignore_errors', False)
+
         block_size = ffi.write_get_bytes_per_block(write_p)
         if block_size <= 0:
             block_size = 10240  # pragma: no cover
@@ -79,12 +81,18 @@ class ArchiveWrite(object):
                         read_disk_descend(read_p)
                         write_header(write_p, entry_p)
                         if entry.isreg:
-                            with open(entry_sourcepath(entry_p), 'rb') as f:
-                                while 1:
-                                    data = f.read(block_size)
-                                    if not data:
-                                        break
-                                    write_data(write_p, data, len(data))
+                            try:
+                                with open(entry_sourcepath(entry_p), 'rb') as f:
+                                    while 1:
+                                        data = f.read(block_size)
+                                        if not data:
+                                            break
+                                        write_data(write_p, data, len(data))
+
+                            except (IOError, OSError):
+                                if not ignore_errors:
+                                    raise
+
                         write_finish_entry(write_p)
                         entry_clear(entry_p)
 

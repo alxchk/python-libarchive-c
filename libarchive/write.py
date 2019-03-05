@@ -68,6 +68,9 @@ class ArchiveWrite(object):
                         if r == ARCHIVE_EOF:
                             break
 
+                        if entry.pathname in ('.', '..'):
+                            continue
+
                         if basedir is None:
                             entry.pathname = entry.pathname.lstrip('/')
                         else:

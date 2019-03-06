@@ -1,9 +1,8 @@
 from __future__ import division, print_function, unicode_literals
 
-from os.path import relpath, basename
+from os.path import relpath
 from contextlib import contextmanager
 from ctypes import byref, cast, c_char, c_size_t, c_void_p, POINTER
-
 from . import ffi
 from .exception import ArchiveError
 from .entry import ArchiveEntry, new_archive_entry
@@ -23,6 +22,7 @@ def new_archive_read_disk(path, flags=0, lookup=False):
     read_disk_set_behavior(archive_p, flags)
     if lookup:
         ffi.read_disk_set_standard_lookup(archive_p)
+
     read_disk_open_w(archive_p, path)
     try:
         yield archive_p
@@ -73,11 +73,10 @@ class ArchiveWrite(object):
                             if not ignore_errors:
                                 raise
 
+                            continue
+
                         if r == ARCHIVE_EOF:
                             break
-
-                        if not entry.pathname:
-                            continue
 
                         if basedir is None:
                             basedir = '/'

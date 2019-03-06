@@ -229,7 +229,7 @@ for f_name in list(WRITE_FORMATS):
 
 WRITE_FILTERS = set((
     'b64encode', 'bzip2', 'compress', 'grzip', 'gzip', 'lrzip', 'lzip', 'lzma',
-    'lzop', 'uuencode', 'xz', 'lz4'
+    'lzop', 'uuencode', 'xz', 'lz4', 'zstd'
 ))
 for f_name in list(WRITE_FILTERS):
     try:
